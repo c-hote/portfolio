@@ -104,6 +104,7 @@
       /* Figures */
 
       figure {
+        
         margin: 1em 0;
         padding: 0.5rem;
         margin-inline: -0.5em;
@@ -158,7 +159,7 @@
         <h3>FOR the Proposition</h3>
 
         <figure>
-          <img src="downwardTrend.png" alt="">
+          <img src="downwardTrend.png" alt="downward trend of deaths">
           <figcaption>Dramatic fall of traffic deaths with increasing urban population.</figcaption>
         </figure>
 
@@ -175,23 +176,60 @@
         <h3>AGAINST the Proposition</h3>
 
         <figure>
-          <img src="Utrend.png" alt="">
+          <img src="Utrend.png" alt="v-shaped trend of deaths">
           <figcaption>Clear optimum value of urbanization for mitigating road deaths.</figcaption>
         </figure>
 
         <p>Design Decisions and Rationale:</p>
 
         <ul>
-          <li>RATIONALE_1</li>
-          <li>RATIONALE_2</li>
-          <li>RATIONALE_3</li>
+          <li>Region seems on par with other regions but contains very few countries</li>
+          <li>Very dim data points direct attention strongly to very clear, smoothed trend line</li>
+          <li>Restricted domain shows only simple v-shaped trend</li>
         </ul>
       </section>
 
       <section>
         <h2>Final Reflection</h2>
 
-        <p>[WRITE FINAL REFLECTION PARAGRAPHS HERE.]</p>
+        <p> Designing visualizations for opposing sides of the same proposition is an exciting 
+          task that I am definitely going to assign myself. It doesn't work as well when they are 
+          right next to each other in this case, as I included the regions and axis scales clearly.
+          I think leaving these out pushes the boundaries of not just ethics but believability: 
+          missing scales are a giant red flag, even for the relatively unitiated in the creation of
+          visualizations.
+        </p>
+        <p>
+          It was pretty easy to make the FOR visualization, which was heartening, as I was searching 
+          for a link between urbanization and traffic fatalities. My main strategy for the AGAINST
+          visual was to restrict the domain and employ copious stacked smoothing algorithms to highlight
+          a dubious trend. This was possible because of the small number of data points in this region. 
+          (This is <strong>without</strong> cherry picking individual countries—just putting unbalanced
+          regions in an innappropriate head-to-head.)
+        </p>
+          
+        <p>
+          If I were to edit these visualizations to get them to work together somehow, I would have to 
+          resort to more underhanded trickery like obfuscating the values on the axes (probably with a log
+          or perhaps even more confusing transformation) or the titles (referring to region 1 and region 2
+          or some similar trick). As it is, comparing the regions as they are built into the World Bank HDI
+          is fairly disingenuous already, as there are so many more data points/countries represented in the 
+          'Europe' region than 'North America.' I would also completely do away with the data point marks
+          (instead of simply making them subtler than the fit curves).
+        </p>
+          
+        
+
+        <p>
+          I noticed how small, defensible decisions stack, accumulating to tell a completely different story.
+          Neither plot includes false data, nor even blatant violations of the norms of visualizations. I see 
+          how the binary of honest and misleading visualizations is a false one, and bad intentions are not the 
+          only way to produce confusion among data consumers. 
+          An ethical visualization, to my mind, is characterized by transparency, intent, and context.
+          Visualizations become misleading when design decisions systematically obscure
+          alternative interpretations. Acknowledging
+          uncertainty and resisting choices that unduly privilege a single narrative is the main takeaway I will 
+          keep in mind as I continue to explore data and ideas around urbanization, transportation, and liveability.</p>
       </section>
     </main>
   <script defer="defer" src="Project%202%20Report_files/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;c822b88e119346678db149ed7b7721c9&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
