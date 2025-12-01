@@ -12,6 +12,9 @@ let currentFrameIndex = 0;
 let playing = false;
 let playInterval = null;
 
+let pinnedCellId = null;
+let pinnedLinePath;   // second path
+
 const mapImg = document.getElementById("goes-frame");
 const overlaySvg = d3.select("#map-overlay");
 const timeSlider = document.getElementById("time-slider");
@@ -102,6 +105,51 @@ function initVis() {
 
   // 6. Initialize time series axes
   initTimeseries();
+  initColorLegend();
+}
+
+function initColorLegend() {
+  const legendSvg = d3.select("#color-legend");
+  const width = +legendSvg.attr("width") - 60;
+  const height = +legendSvg.attr("height") - 30;
+
+  const g = legendSvg.append("g")
+    .attr("transform", "translate(40,10)");
+
+  // Domain based on your brightness_temp range
+  const tempMin = d3.min(values, d => d.brightness_temp);
+  const tempMax = d3.max(values, d => d.brightness_temp);
+
+  const legendScale = d3.scaleLinear()
+    .domain([tempMin, tempMax])
+    .range([0, width]);
+
+  const legendAxis = d3.axisBottom(legendScale)
+    .ticks(5);
+
+  // Gradient
+  const defs = legendSvg.append("defs");
+  const gradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient");
+
+  gradient.append("stop").attr("offset", "0%").attr("stop-color", d3.interpolateInferno(0));
+  gradient.append("stop").attr("offset", "100%").attr("stop-color", d3.interpolateInferno(1));
+
+  g.append("rect")
+    .attr("width", width)
+    .attr("height", 12)
+    .style("fill", "url(#legend-gradient)");
+
+  g.append("g")
+    .attr("transform", `translate(0, ${12})`)
+    .call(legendAxis);
+
+  g.append("text")
+    .attr("x", width / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", 11)
+    .text("Brightness temperature (K)");
 }
 
 function updateFrame(frameIndex) {
@@ -149,35 +197,51 @@ function togglePlay() {
 }
 
 function drawCellOverlay(imgWidth, imgHeight) {
-  // Each cell gets a rect; we’ll allow pointer events on those
   const cellSelection = overlaySvg
     .selectAll("rect.cell")
     .data(cells, d => d.cell_id);
 
-  cellSelection.enter()
+  const cellsEnter = cellSelection.enter()
     .append("rect")
     .attr("class", "cell")
     .attr("x", d => (d.x_norm - d.width_norm / 2) * imgWidth)
     .attr("y", d => (d.y_norm - d.height_norm / 2) * imgHeight)
     .attr("width", d => d.width_norm * imgWidth)
     .attr("height", d => d.height_norm * imgHeight)
-    .attr("fill", "rgba(255,255,255,0)")   // invisible by default
+    .attr("fill", "rgba(255,255,255,0)")
     .attr("stroke", "none")
-    .style("pointer-events", "all")         // capture mouse events
+    .style("pointer-events", "all")
     .on("mouseover", (event, d) => {
       d3.select(event.currentTarget)
         .attr("stroke", "yellow")
         .attr("stroke-width", 1.5);
 
-      showTimeseriesForCell(d.cell_id, d);
+      showTimeseriesForCell(d.cell_id, d, false); // not pinned
     })
     .on("mouseout", (event, d) => {
-      d3.select(event.currentTarget)
-        .attr("stroke", "none");
+      if (d.cell_id !== pinnedCellId) {
+        d3.select(event.currentTarget)
+          .attr("stroke", "none");
+      }
     })
-    .append("title")
+    .on("click", (event, d) => {
+      pinnedCellId = d.cell_id;
+      // Reset all strokes
+      overlaySvg.selectAll("rect.cell")
+        .attr("stroke", "none");
+
+      // Highlight pinned
+      d3.select(event.currentTarget)
+        .attr("stroke", "cyan")
+        .attr("stroke-width", 2);
+
+      showTimeseriesForCell(d.cell_id, d, true); // pinned
+    });
+
+  cellsEnter.append("title")
     .text(d => `Cell ${d.cell_id}\nlat=${d.lat.toFixed(2)}, lon=${d.lon.toFixed(2)}`);
 }
+
 
 function initTimeseries() {
   // Domain of x = frame_index
@@ -231,6 +295,14 @@ function initTimeseries() {
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2);
 
+  // Second path
+  pinnedLinePath = tsG.append("path")
+    .attr("fill", "none")
+    .attr("stroke", "gray")
+    .attr("stroke-width", 2)
+    .attr("stroke-dasharray", "4 2");
+
+
   // Vertical focus line for current frame
   tsFocusLine = tsG.append("line")
     .attr("y1", 0)
@@ -245,21 +317,33 @@ function initTimeseries() {
     .attr("x2", xScaleTS(0));
 }
 
-function showTimeseriesForCell(cellId, cellMeta) {
+function showTimeseriesForCell(cellId, cellMeta, isPinned) {
   const cellValues = valuesByCell.get(cellId);
   if (!cellValues) return;
 
-  // Sort by frame_index just in case
   cellValues.sort((a, b) => a.frame_index - b.frame_index);
 
   const lineGenerator = d3.line()
     .x(d => xScaleTS(d.frame_index))
     .y(d => yScaleTS(d.brightness_temp));
 
-  tsLinePath
-    .datum(cellValues)
-    .attr("d", lineGenerator);
+  if (isPinned) {
+    pinnedLinePath
+      .datum(cellValues)
+      .attr("d", lineGenerator);
+  } else {
+    tsLinePath
+      .datum(cellValues)
+      .attr("d", lineGenerator);
+  }
 
   const titleDiv = document.getElementById("timeseries-title");
-  titleDiv.textContent = `Time series for cell ${cellId} (lat=${cellMeta.lat.toFixed(2)}, lon=${cellMeta.lon.toFixed(2)})`;
+  if (isPinned) {
+    titleDiv.textContent =
+      `Pinned cell ${cellId} (cyan, lat=${cellMeta.lat.toFixed(2)}, lon=${cellMeta.lon.toFixed(2)}) and hover cell (blue)`;
+  } else {
+    titleDiv.textContent =
+      `Hover cell ${cellId} (blue, lat=${cellMeta.lat.toFixed(2)}, lon=${cellMeta.lon.toFixed(2)})`;
+  }
 }
+
