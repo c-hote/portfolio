@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>GOES Storm Evolution Explorer</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f6f6f6;
+    }
+
+    #app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 3rem;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 1rem auto;
+      border: 1px solid #ccc;
+      background: #000;
+    }
+
+    #goes-frame {
+      width: 100%;
+      display: block;
+    }
+
+    #map-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none; /* we'll override for cells */
+    }
+
+    #controls {
+      margin: 1rem auto;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #controls label {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    #time-slider {
+      flex: 1;
+    }
+
+    #current-time {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #333;
+      min-width: 180px;
+      text-align: right;
+    }
+
+    #timeseries-container {
+      max-width: 900px;
+      margin: 1.5rem auto;
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem 1rem;
+      background: #fafafa;
+    }
+
+    #timeseries-title {
+      font-size: 0.9rem;
+      color: #333;
+      margin-bottom: 0.25rem;
+    }
+
+    svg {
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>GOES Storm Evolution Explorer</h1>
+    <p>
+      Explore how cloud-top brightness temperatures evolve through the day across this region, using GOES infrared imagery.
+      Hover over the map to see the time series for each cell.
+    </p>
+
+    <div id="map-container">
+      <!-- Background GOES image -->
+      <img id="goes-frame" src="" alt="GOES image">
+
+      <!-- SVG overlay for interactive grid cells -->
+      <svg id="map-overlay"></svg>
+    </div>
+
+    <div id="controls">
+      <button id="play-pause">Play</button>
+      <label for="time-slider">Time:</label>
+      <input type="range" id="time-slider" min="0" max="0" value="0" step="1">
+      <div id="current-time">(loading...)</div>
+    </div>
+
+    <div id="timeseries-container">
+      <div id="timeseries-title">Time series (hover a cell on the map)</div>
+      <svg id="timeseries" width="900" height="250"></svg>
+    </div>
+
+    <!-- You can put your write-up below later -->
+
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
