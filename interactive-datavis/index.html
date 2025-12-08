@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>GOES Storm Evolution Explorer</title>
+  <h1>GOES-18 Storm Evolution Explorer</h1>
+  <h2>Full-Disk Infrared (Band 13) — Western Hemisphere, 18:00–23:00 UTC, Nov 30 2025</h2>
+
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     body {
@@ -91,10 +94,19 @@
 </head>
 <body>
   <div id="app">
-    <h1>GOES Storm Evolution Explorer</h1>
+    <h1>GOES-18 Storm Evolution Explorer</h1>
+    <h2 style="font-size: 1.1rem; color: #555; margin-top: -0.5rem;">
+      Full-Disk Infrared (Band 13) — Western Hemisphere, 18:00–23:00 UTC, Nov 30 2025
+    </h2>
+
     <p>
       Explore how cloud-top brightness temperatures evolve through the day across this region, using GOES infrared imagery.
       Hover over the map to see the time series for each cell.
+    </p>
+    <p style="font-size: 0.9rem; color: #666;">
+      Data: GOES-18 ABI L2 CMIPF Band 13 (IR).  
+      Spatial: 50×50 coarse grid over full disk.  
+      Time: ~10-min intervals, total ~5 h.
     </p>
 
     <div id="map-container">
