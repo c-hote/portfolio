@@ -15,6 +15,8 @@ let playInterval = null;
 let pinnedCellId = null;
 let pinnedLinePath;   // second path
 
+let worldTopo = null; // add land boundaries from data/world-110m.json
+
 const mapImg = document.getElementById("goes-frame");
 const overlaySvg = d3.select("#map-overlay");
 const timeSlider = document.getElementById("time-slider");
@@ -56,11 +58,13 @@ Promise.all([
     frame_index: +d.frame_index,
     cell_id: +d.cell_id,
     brightness_temp: +d.brightness_temp
-  }))
-]).then(([timesData, cellsData, valuesData]) => {
+  })),
+  d3.json("data/world-110m.json")
+]).then(([timesData, cellsData, valuesData, worldData]) => {
   times = timesData.sort((a, b) => a.frame_index - b.frame_index);
   cells = cellsData;
   values = valuesData;
+  worldTopo = worldData;
 
   valuesByCell = d3.group(values, d => d.cell_id);
   valuesByTime = d3.group(values, d => d.frame_index);
@@ -88,6 +92,9 @@ function initVis() {
       .style("width", bbox.width + "px")
       .style("height", bbox.height + "px");
 
+    if (worldTopo) {
+      drawCoastlines(bbox.width, bbox.height);
+    }
     drawCellOverlay(bbox.width, bbox.height);
   });
 
@@ -110,47 +117,65 @@ function initVis() {
 
 function initColorLegend() {
   const legendSvg = d3.select("#color-legend");
-  const width = +legendSvg.attr("width") - 60;
-  const height = +legendSvg.attr("height") - 30;
+
+  // Clear any previous legend content
+  legendSvg.selectAll("*").remove();
+
+  const width = 260;
+  const height = 12;
+  const margin = { top: 8, right: 10, bottom: 28, left: 10 };
+
+  legendSvg
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
 
   const g = legendSvg.append("g")
-    .attr("transform", "translate(40,10)");
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Domain based on your brightness_temp range
+  // Brightness-temp range from your values
   const tempMin = d3.min(values, d => d.brightness_temp);
   const tempMax = d3.max(values, d => d.brightness_temp);
+
+  // Gradient that actually follows inferno shape
+  const defs = legendSvg.append("defs");
+  const gradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("x2", "100%");
+
+  d3.range(0, 1.01, 0.01).forEach(t => {
+    gradient.append("stop")
+      .attr("offset", `${t * 100}%`)
+      .attr("stop-color", d3.interpolateInferno(t));
+  });
+
+  g.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", "url(#legend-gradient)");
 
   const legendScale = d3.scaleLinear()
     .domain([tempMin, tempMax])
     .range([0, width]);
 
   const legendAxis = d3.axisBottom(legendScale)
-    .ticks(5);
-
-  // Gradient
-  const defs = legendSvg.append("defs");
-  const gradient = defs.append("linearGradient")
-    .attr("id", "legend-gradient");
-
-  gradient.append("stop").attr("offset", "0%").attr("stop-color", d3.interpolateInferno(0));
-  gradient.append("stop").attr("offset", "100%").attr("stop-color", d3.interpolateInferno(1));
-
-  g.append("rect")
-    .attr("width", width)
-    .attr("height", 12)
-    .style("fill", "url(#legend-gradient)");
+    .ticks(5)
+    .tickFormat(d => `${Math.round(d)} K`);
 
   g.append("g")
-    .attr("transform", `translate(0, ${12})`)
-    .call(legendAxis);
+    .attr("transform", `translate(0, ${height})`)
+    .call(legendAxis)
+    .selectAll("text")
+    .style("font-size", "11px");
 
   g.append("text")
     .attr("x", width / 2)
-    .attr("y", 30)
+    .attr("y", height + 36)
     .attr("text-anchor", "middle")
     .attr("font-size", 11)
     .text("Brightness temperature (K)");
 }
+
 
 function updateFrame(frameIndex) {
   currentFrameIndex = frameIndex;
@@ -169,7 +194,7 @@ function updateFrame(frameIndex) {
 
   // Move vertical line in timeseries (if created)
   if (tsFocusLine && xScaleTS) {
-    const xVal = frameIndex; // we’ll use frame_index as x domain
+    const xVal = frameIndex; // use frame_index as x domain
     tsFocusLine
       .attr("x1", xScaleTS(xVal))
       .attr("x2", xScaleTS(xVal));
@@ -347,3 +372,56 @@ function showTimeseriesForCell(cellId, cellMeta, isPinned) {
   }
 }
 
+function drawCoastlines(width, height) {
+  // Clear any existing coastline paths
+  overlaySvg.selectAll("g.coastlines").remove();
+
+  const g = overlaySvg.append("g")
+    .attr("class", "coastlines");
+
+  // We assume worldTopo is the 110m topojson with 'countries' or 'land'
+  const land = topojson.feature(worldTopo, worldTopo.objects.land);
+
+  // Simple equirectangular projection (lon: -180..180, lat: -90..90)
+  //NO - replace: const projection = d3.geoEquirectangular()
+  //  .scale(width / (2 * Math.PI)) // basic scale guess
+  //  .translate([width / 2, height / 2]);
+  //with:
+  // Orthographic projection, roughly centered on GOES-West
+  // GOES-18 is around 137°W, so rotate by +137 to bring that to center.
+  const projection = d3.geoOrthographic()
+    .translate([width / 2, height / 2])
+    .scale(0.505 * Math.min(width, height))  // sphere fits inside the image
+    .rotate([75, -8])                       // center Western Hemisphere
+    .clipAngle(90);                         // default, but explicit
+
+  const path = d3.geoPath(projection);
+
+  // White halo underneath
+g.append("path")
+  .datum(land)
+  .attr("d", path)
+  .attr("fill", "none")
+  .attr("stroke", "white")
+  .attr("stroke-width", 2.8)
+  .attr("opacity", 0.8);
+
+// Dark line on top
+g.append("path")
+  .datum(land)
+  .attr("d", path)
+  .attr("fill", "none")
+  .attr("stroke", "#111")
+  .attr("stroke-width", 1.2)
+  .attr("opacity", 0.95);
+
+// delineate globe edge with disc edge
+g.append("path")
+  .datum({ type: "Sphere" })
+  .attr("d", path)
+  .attr("fill", "none")
+  .attr("stroke", "#222")
+  .attr("stroke-width", 2.2)
+  .attr("opacity", 0.9);
+
+}

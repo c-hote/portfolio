@@ -7,6 +7,8 @@
   <h2>Full-Disk Infrared (Band 13) — Western Hemisphere, 18:00–23:00 UTC, Nov 30 2025</h2>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -45,7 +47,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      pointer-events: none; /* we'll override for cells */
+      pointer-events: none; /* override for cells */
     }
 
     #controls {
@@ -86,6 +88,18 @@
       color: #333;
       margin-bottom: 0.25rem;
     }
+
+    #legend-container {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #color-legend {
+      overflow: visible;
+    }
+
 
     svg {
       font-family: inherit;
@@ -130,10 +144,53 @@
     </div>
 
     <div id="legend-container">
-      <svg id="color-legend" width="300" height="60"></svg>
+      <svg id="color-legend"></svg>
     </div>
 
-    <!-- You can put your write-up below later -->
+    <section id="writeup">
+  <h2>Project Write-Up</h2>
+
+  <p>
+    This visualization supports interactive exploration of GOES-18 full-disk infrared (Band 13) satellite imagery.
+    The guiding question is how cloud-top brightness temperatures evolve across the Western Hemisphere over several hours.
+    We focus on large-scale spatial patterns rather than fine local detail.
+    This scope keeps the visualization focused and feasible within the two-week window.
+  </p>
+
+  <p>
+    The raw satellite data were downsampled to a 50×50 grid to balance clarity and performance.
+    We aggregated brightness temperature by spatial cell and time step.
+    We export three static files for the web app: grid geometry, time metadata, and cell-by-time values.
+    This transformation preserves structure while keeping file sizes small enough for fast loading.
+  </p>
+
+  <p>
+    Brightness temperature is encoded with a sequential inferno color scale in the main heatmap.
+    Position is used for all quantitative comparisons in the linked time-series view.
+    Time is shown both through animation and a scrubber slider.
+    Hover reveals details on demand, and clicking a cell pins a reference series for comparison.
+  </p>
+
+  <p>
+    We overlay coastlines using a D3 orthographic projection as an intentional approximation.
+    GOES data use a true geostationary projection that is mathematically complex to replicate in the browser.
+    We favored a visually aligned approximation for elegance, performance, and development time.
+    The approximation improves geographic readability without introducing perceptual confusion for the intended tasks.
+  </p>
+
+  <p>
+    Development was split between Python data processing and D3 front-end implementation.
+    Approximately equal time was spent on data access, transformation, and interactive design.
+    The most time-intensive challenges were GOES file access and projection alignment decisions.
+  </p>
+
+  <p>
+    A natural future direction is an automated pipeline that fetches and processes GOES data for a user-specified date range.
+    This would enable exploratory analysis across days or seasonal events.
+    Anticipated challenges include large data volumes, API rate limits, and long preprocessing times.
+  </p>
+</section>
+
 
   </div>
 
