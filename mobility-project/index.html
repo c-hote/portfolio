@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visualizing Car-Independent Mobility Around San Diego County</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- D3 and TopoJSON -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Visualizing Car-Independent Mobility Around San Diego County</h1>
+      <p class="subtitle">
+        How many jobs and industry clusters are reachable without a car from each zone,
+        by mode and time of day?
+      </p>
+    </header>
+
+    <section id="controls">
+      <div class="control-group">
+        <label>Mode:</label>
+        <label><input type="radio" name="mode" value="transit" checked> Transit</label>
+        <label><input type="radio" name="mode" value="auto"> Auto</label>
+      </div>
+
+      <div class="control-group">
+        <label>Time of day:</label>
+        <select id="time-select">
+          <option value="AllDay">All Day</option>
+          <!-- <option value="PM_peak">PM peak</option> -->
+        </select>
+      </div>
+    </section>
+
+    <section id="main-layout">
+      <div id="map-panel">
+        <div id="map-container">
+          <svg id="map-svg"></svg>
+        </div>
+        <div id="legend-container">
+          <svg id="legend-svg"></svg>
+        </div>
+        <div id="map-caption">
+          Zones colored by access index: share of regional jobs reachable within 45 minutes
+          for the selected mode and time period.
+        </div>
+      </div>
+
+      <div id="detail-panel">
+        <h2 id="detail-title">Click a zone to see accessibility details</h2>
+
+        <div id="detail-summary">
+          <p id="detail-meta"></p>
+        </div>
+
+        <div id="accessibility-chart-container">
+          <h3>Jobs reachable vs. travel time</h3>
+          <svg id="accessibility-svg"></svg>
+        </div>
+
+        <div id="industry-chart-container">
+          <h3>Industry mix (jobs reachable within 45 minutes, transit)</h3>
+          <svg id="industry-svg"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="writeup">
+      <h2>Project Write-Up</h2>
+
+      <p>
+        This visualization supports interactive exploration of car-independent mobility around San Diego County.
+        The guiding question is how access to jobs and industry clusters varies across zones by mode and time of day.
+        We focus on large-scale spatial patterns rather than parcel-level detail.
+        This scope keeps the visualization focused and feasible within the project timeline.
+      </p>
+
+      <p>
+        We aggregate regional employment and travel time skims to derive a simple accessibility index for each zone.
+        The index reflects the share of regional jobs reachable within a 45-minute travel budget for a given mode and time period.
+        We export three static datasets for the web app: zone geometries, zone attributes, and accessibility summaries.
+        This transformation preserves structure while keeping client-side computation and file sizes modest.
+      </p>
+      
+      <p>
+        For this prototype we approximated travel time using straight-line distance between block group centroids. We used 
+        three distance bands (5, 10, and 18 km) as proxies for 15, 30, and 45 minute travel budgets for typical urban travel 
+        speeds. In future work, we would replace this with true network-based travel-time skims or empirical OD data from 
+        SANDAG.
+      </p>
+      
+      <p>
+        Accessibility is encoded with a sequential color scale on the map, while position encodes geography.
+        A linked chart shows cumulative jobs reachable at different travel time thresholds for the selected zone.
+        Mode and time-of-day controls allow side-by-side comparison of car versus transit access.
+        Hover and click reveal details on demand, including an industry mix view for each origin zone.
+      </p>
+
+      <p>
+        We overlay zone boundaries using a simple geographic projection as an intentional approximation.
+        The underlying travel time model reflects network-based routes and schedules that are difficult to fully express on a static basemap.
+        We favor an elegant, D3-based approximation for responsiveness and implementation simplicity rather than exact geometric replication of the model space.
+        The approximation improves interpretability without introducing confusion for the intended exploratory tasks.
+      </p>
+
+      <p>
+        Development is split between Python data processing and D3 front-end implementation.
+        Most effort goes into transforming SANDAG open data into compact, analysis-ready CSVs and designing the coordinated views.
+        A natural future direction is an automated pipeline that fetches, aggregates, and serves accessibility metrics for user-specified date ranges or scenarios.
+        Anticipated challenges include large data volumes, reproducibility across model vintages, and maintaining responsive web performance.
+      </p>
+    </section>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #111;
+  background: #f5f5f7;
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 12px 40px;
+}
+
+header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+}
+
+header .subtitle {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+#main-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+#map-panel,
+#detail-panel {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  padding: 10px 10px 14px;
+}
+
+#map-container {
+  width: 100%;
+  height: 460px;
+  position: relative;
+}
+
+#map-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#legend-container {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+#legend-svg {
+  overflow: visible;
+}
+
+#map-caption {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+#detail-panel h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+#detail-summary {
+  min-height: 40px;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+#detail-meta {
+  margin: 4px 0 8px;
+}
+
+#accessibility-chart-container,
+#industry-chart-container {
+  margin-top: 10px;
+}
+
+#accessibility-chart-container h3,
+#industry-chart-container h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+#accessibility-svg,
+#industry-svg {
+  width: 100%;
+  height: 180px;
+}
+
+.zone {
+  stroke: #f0f0f0;
+  stroke-width: 0.4;
+}
+
+.zone-outline {
+  stroke: #333;
+  stroke-width: 1.2;
+  fill: none;
+  pointer-events: none;
+}
+
+.zone:hover {
+  stroke: #111;
+  stroke-width: 1;
+}
+
+.zone-selected {
+  stroke: #111;
+  stroke-width: 2;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: #444;
+}
+
+.axis path,
+.axis line {
+  stroke: #ccc;
+}
+
+.line-series {
+  fill: none;
+  stroke-width: 2;
+}
+
+.line-transit {
+  stroke: #1d6fd4;
+}
+
+.line-auto {
+  stroke: #999;
+}
+
+.bar {
+  fill: #888;
+}
+
+.bar-label {
+  font-size: 9px;
+  fill: #333;
+}
+
+#writeup {
+  margin-top: 20px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+#writeup h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+#writeup p {
+  font-size: 0.9rem;
+  margin: 6px 0;
+  color: #333;
+}
+
+@media (max-width: 900px) {
+  #main-layout {
+    grid-template-columns: 1fr;
+  }
+}
