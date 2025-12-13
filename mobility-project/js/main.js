@@ -39,7 +39,7 @@ Promise.all([
   d3.csv("data/industry_mix.csv", d => ({
     zone_id: d.zone_id,
     industry_group: d.industry_group,
-    jobs: +d.jobs
+    jobs: +d.job
   }))
 ]).then(([topoJson, attrRows, accessRows, industryRows]) => {
   topoData = topoJson;
