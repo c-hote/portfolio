@@ -67,40 +67,25 @@ function initVis() {
   accessibilitySvg = d3.select("#accessibility-svg");
   industrySvg = d3.select("#industry-svg");
 
+  // IMPORTANT: clear prior renders if you re-run
+  mapSvg.selectAll("*").remove();
+
   const mapWidth = mapSvg.node().clientWidth || 700;
   const mapHeight = mapSvg.node().clientHeight || 460;
-
-  console.log("Map size:", mapWidth, mapHeight);
 
   projection = d3.geoMercator()
     .fitSize([mapWidth, mapHeight], zoneGeometries);
 
   path = d3.geoPath().projection(projection);
 
-  // 🔹 Test rectangle just to confirm drawing works
-  mapSvg.append("rect")
-    .attr("x", 10)
-    .attr("y", 10)
-    .attr("width", 50)
-    .attr("height", 50)
-    .attr("fill", "#eee")
-    .attr("stroke", "red");
-
-  drawMap();
+  drawMap();          // <-- only call after mapSvg/projection/path are set
   initLegend();
   initAccessibilityChart();
   initIndustryChart();
 }
 
-  // Build base map
-  drawMap();
 
-  // Build legend
-  initLegend();
-
-  // Build empty detail charts
-  initAccessibilityChart();
-  initIndustryChart();
+ /*
 
   // Wire controls
   d3.selectAll("input[name='mode']").on("change", event => {
@@ -118,33 +103,41 @@ function initVis() {
       updateDetailPanel(selectedZoneId);
     }
   });
-
+*/
 
 // Build map
 function drawMap() {
-  const zones = mapSvg.append("g")
-    .attr("class", "zones");
+  if (!mapSvg) {
+    console.error("mapSvg is not initialized before drawMap()");
+    return;
+  }
 
-  zones.selectAll("path.zone")
+  console.log("Drawing map with", zoneGeometries.features.length, "features");
+
+  const zonesG = mapSvg.append("g").attr("class", "zones");
+
+  zonesG.selectAll("path.zone")
     .data(zoneGeometries.features)
     .join("path")
     .attr("class", "zone")
     .attr("d", path)
     .attr("fill", d => colorForZone(d.properties.zone_id))
-    .on("mouseover", function (event, d) {
-      d3.select(this).raise().attr("stroke-width", 1.5);
-    })
-    .on("mouseout", function (event, d) {
-      if (d.properties.zone_id !== selectedZoneId) {
-        d3.select(this).attr("stroke-width", 0.4);
-      }
-    })
     .on("click", (event, d) => {
       selectedZoneId = d.properties.zone_id;
       updateMapSelection();
       updateDetailPanel(selectedZoneId);
+      
+    })
+    .on("click", (event, d) => {
+      const zid = d.properties.zone_id;
+      console.log("clicked zone_id:", zid, "attrs?", zoneAttributes.has(zid));
+      selectedZoneId = zid;
+      updateMapSelection();
+      updateDetailPanel(selectedZoneId);
     });
+
 }
+
 
 
 // Compute color scale and return color for a zone
@@ -348,6 +341,9 @@ function updateAccessibilityChart(zoneId) {
     update => update.attr("d", line),
     exit => exit.remove()
   );
+  console.log("access rows for", zoneId,
+  accessibilitySummary.filter(r => r.zone_id === zoneId && r.time_period === currentTimePeriod));
+
 }
 
 // Industry bar chart

@@ -102,20 +102,22 @@
       </p>
 
       <p>
-        We overlay zone boundaries using a simple geographic projection as an intentional approximation.
+        We overlay zone boundaries based on census tracts, although SANDAG data is geographically mapped by several schemes and seamless translation between them is left for a future direction.
         The underlying travel time model reflects network-based routes and schedules that are difficult to fully express on a static basemap.
         We favor an elegant, D3-based approximation for responsiveness and implementation simplicity rather than exact geometric replication of the model space.
-        The approximation improves interpretability without introducing confusion for the intended exploratory tasks.
+        The geographic approximation of the tracts improves interpretability without introducing confusion for the intended exploratory tasks.
       </p>
 
       <p>
-        Development is split between Python data processing and D3 front-end implementation.
-        Most effort goes into transforming SANDAG open data into compact, analysis-ready CSVs and designing the coordinated views.
+        Development is split between data exploration, python data processing and D3 front-end implementation.
+        Most effort goes into navigating the available SANDAG open datasets, then transforming into compact, analysis-ready CSVs and designing the coordinated views.
         A natural future direction is an automated pipeline that fetches, aggregates, and serves accessibility metrics for user-specified date ranges or scenarios.
         Anticipated challenges include large data volumes, reproducibility across model vintages, and maintaining responsive web performance.
+        For prototyping and interaction design, we synthesized internally consistent accessibility and employment data to validate visual encodings and interactions; 
+        future work will replace these with fully observed SANDAG travel skims and employment tables.
       </p>
 
-      <p>this is a test</p>
+      <p></p>
     </section>
   </div>
 
