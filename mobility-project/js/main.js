@@ -1,31 +1,27 @@
-// Global state
 let topoData;
 let zoneGeometries;
 let zoneAttributes = new Map();
 let accessibilitySummary = [];
-let industryMix = d3.group();
+let industryMix = new Map();
 let currentMode = "transit";
-// Move back to "AM_peak"w/more data:
-let currentTimePeriod = "AllDay";
+let currentTimePeriod = "AllDay";  // using distance-based proxy for now
 let selectedZoneId = null;
 
-// Scales and layout globals
 let projection, path;
 let colorScale;
 let mapSvg, legendSvg;
 let accessibilitySvg, industrySvg;
 
-// Load all data
 Promise.all([
+  d3.json("data/zones_topology.json"),
   d3.csv("data/zone_attributes.csv", d => ({
-  zone_id: d.zone_id,
-  name: d.name,
-  jurisdiction: d.jurisdiction,
-  total_jobs: +d.total_jobs,
-  cluster_jobs: +d.cluster_jobs,
-  median_rent: d.median_rent ? +d.median_rent : null
-}))
-,
+    zone_id: d.zone_id,
+    name: d.name,
+    jurisdiction: d.jurisdiction,
+    total_jobs: +d.total_jobs,
+    cluster_jobs: +d.cluster_jobs,
+    median_rent: d.median_rent ? +d.median_rent : null
+  })),
   d3.csv("data/accessibility_summary.csv", d => ({
     zone_id: d.zone_id,
     time_period: d.time_period,
@@ -39,15 +35,19 @@ Promise.all([
   d3.csv("data/industry_mix.csv", d => ({
     zone_id: d.zone_id,
     industry_group: d.industry_group,
-    jobs: +d.job
+    jobs: +d.jobs
   }))
 ]).then(([topoJson, attrRows, accessRows, industryRows]) => {
   topoData = topoJson;
-  zoneGeometries = topojson.feature(topoData, topoData.objects.zones);
 
-  zoneAttributes = new Map();
+  // 🔹 Dynamically pick the first object as the layer, whatever its name is
+  const objectName = Object.keys(topoData.objects)[0];
+  console.log("TopoJSON object name:", objectName);
+  zoneGeometries = topojson.feature(topoData, topoData.objects[objectName]);
+
+  console.log("Zone feature count:", zoneGeometries.features.length);
+
   attrRows.forEach(d => zoneAttributes.set(d.zone_id, d));
-
   accessibilitySummary = accessRows;
   industryMix = d3.group(industryRows, d => d.zone_id);
 
@@ -57,20 +57,40 @@ Promise.all([
 });
 
 
+
 // Initialize visualization
 function initVis() {
+  console.log("initVis called");
+
   mapSvg = d3.select("#map-svg");
   legendSvg = d3.select("#legend-svg");
   accessibilitySvg = d3.select("#accessibility-svg");
   industrySvg = d3.select("#industry-svg");
 
-  const mapWidth = mapSvg.node().clientWidth || 500;
+  const mapWidth = mapSvg.node().clientWidth || 700;
   const mapHeight = mapSvg.node().clientHeight || 460;
+
+  console.log("Map size:", mapWidth, mapHeight);
 
   projection = d3.geoMercator()
     .fitSize([mapWidth, mapHeight], zoneGeometries);
 
   path = d3.geoPath().projection(projection);
+
+  // 🔹 Test rectangle just to confirm drawing works
+  mapSvg.append("rect")
+    .attr("x", 10)
+    .attr("y", 10)
+    .attr("width", 50)
+    .attr("height", 50)
+    .attr("fill", "#eee")
+    .attr("stroke", "red");
+
+  drawMap();
+  initLegend();
+  initAccessibilityChart();
+  initIndustryChart();
+}
 
   // Build base map
   drawMap();
@@ -98,7 +118,7 @@ function initVis() {
       updateDetailPanel(selectedZoneId);
     }
   });
-}
+
 
 // Build map
 function drawMap() {
